@@ -2,10 +2,12 @@ package com.app.controller;
 
 import com.app.dto.DishDTO;
 import com.app.model.Dish;
+import com.app.pagination.PageSupport;
 import com.app.service.IDishService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -84,6 +86,24 @@ public class DishController {
                         return Mono.just(ResponseEntity.notFound().build());
                     }
                 });
+    }
+
+    @GetMapping("/pageable")
+    public Mono<ResponseEntity<PageSupport<DishDTO>>> getPage(@RequestParam(name = "page", defaultValue = "0") int page,
+                                                              @RequestParam(name = "size", defaultValue = "2") int size){
+        //utilización de PageRequest que implementa Pageable
+        return service.getPage(PageRequest.of(page, size))
+                .map(pageSupport -> new PageSupport<>(
+                        pageSupport.getContent().stream().map(this::convertToDto).toList(),
+                        pageSupport.getPageNumber(),
+                        pageSupport.getPageSize(),
+                        pageSupport.getTotalElements()
+                ))
+                .map(e -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(e)
+                )
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     private DishDTO convertToDto(Dish model){

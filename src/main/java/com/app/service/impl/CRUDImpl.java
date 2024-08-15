@@ -1,9 +1,13 @@
 package com.app.service.impl;
 
+import com.app.pagination.PageSupport;
 import com.app.repo.IGenericRepo;
 import com.app.service.ICRUD;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.stream.Collectors;
 
 //Clase abstracta de clase generica para el CRUD del proyecto
 public abstract class CRUDImpl<T,ID> implements ICRUD<T,ID> {
@@ -43,5 +47,19 @@ public abstract class CRUDImpl<T,ID> implements ICRUD<T,ID> {
                         return Mono.just(false);
                     }
                 });
+    }
+
+    @Override
+    public Mono<PageSupport<T>> getPage(Pageable pageable) {
+        //Para esta implementacion de page se trae todos los datos y aqui en codigo se hace la división, pudiendo tener que treaer
+        // mucha información, otra alternativa es hacerlo mediante un query personalizado
+        return getRepo().findAll()
+                .collectList()
+                .map(list -> new PageSupport<>(
+                        list.stream()
+                                .skip(pageable.getPageNumber() * pageable.getPageSize())
+                                .limit(pageable.getPageSize()).toList()
+                        , pageable.getPageNumber(), pageable.getPageSize(), list.size()
+                ));
     }
 }
