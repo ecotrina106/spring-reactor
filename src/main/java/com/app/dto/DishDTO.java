@@ -1,5 +1,6 @@
 package com.app.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +12,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+//Línea para ignorar nulos en salida
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DishDTO {
 
     private String id;

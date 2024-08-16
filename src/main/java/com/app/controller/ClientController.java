@@ -1,9 +1,9 @@
 package com.app.controller;
 
-import com.app.dto.DishDTO;
-import com.app.model.Dish;
+import com.app.dto.ClientDTO;
+import com.app.model.Client;
 import com.app.pagination.PageSupport;
-import com.app.service.IDishService;
+import com.app.service.IClientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -24,17 +24,17 @@ import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.lin
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/dishes")
+@RequestMapping("/clients")
 @RequiredArgsConstructor
-public class DishController {
+public class ClientController {
 
-    private final IDishService service;
-    @Qualifier("defaultMapper")
+    private final IClientService service;
+    @Qualifier("clientMapper")
     private final ModelMapper modelMapper;
 
     @GetMapping
-    public Mono<ResponseEntity<Flux<DishDTO>>> findAll(){
-        Flux<DishDTO> fx = service.findAll().map(this::convertToDto);
+    public Mono<ResponseEntity<Flux<ClientDTO>>> findAll(){
+        Flux<ClientDTO> fx = service.findAll().map(this::convertToDto);
 
         return Mono.just(ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -43,7 +43,7 @@ public class DishController {
     }
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<DishDTO>> findById(@PathVariable("id") String id){
+    public Mono<ResponseEntity<ClientDTO>> findById(@PathVariable("id") String id){
         return service.findById(id)
                 .map(this::convertToDto)
                 .map(e -> ResponseEntity.ok()
@@ -54,7 +54,7 @@ public class DishController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<DishDTO>> save(@RequestBody @Valid DishDTO dto, final ServerHttpRequest req){
+    public Mono<ResponseEntity<ClientDTO>> save(@RequestBody @Valid ClientDTO dto, final ServerHttpRequest req){
         return service.save(this.convertToDocument(dto))
                 .map(this::convertToDto)
                 .map(e -> ResponseEntity.created(
@@ -67,7 +67,7 @@ public class DishController {
     }
 
     @PutMapping("/{id}")
-    public Mono<ResponseEntity<DishDTO>> update(@PathVariable("id") String id, @RequestBody @Valid DishDTO dto){
+    public Mono<ResponseEntity<ClientDTO>> update(@PathVariable("id") String id, @RequestBody @Valid ClientDTO dto){
         return Mono.just(this.convertToDocument(dto))
                 .map(e -> {
                     e.setId(id);
@@ -96,7 +96,7 @@ public class DishController {
     }
 
     @GetMapping("/pageable")
-    public Mono<ResponseEntity<PageSupport<DishDTO>>> getPage(@RequestParam(name = "page", defaultValue = "0") int page,
+    public Mono<ResponseEntity<PageSupport<ClientDTO>>> getPage(@RequestParam(name = "page", defaultValue = "0") int page,
                                                               @RequestParam(name = "size", defaultValue = "2") int size){
         //utilización de PageRequest que implementa Pageable
         return service.getPage(PageRequest.of(page, size))
@@ -114,20 +114,20 @@ public class DishController {
     }
 
     @GetMapping("/hateoas/{id}")
-    public Mono<EntityModel<DishDTO>> getHateoas(@PathVariable("id") String id){
-        Mono<Link> monoLink = linkTo(methodOn(DishController.class).findById(id)).withRel("dish-info").toMono();
+    public Mono<EntityModel<ClientDTO>> getHateoas(@PathVariable("id") String id){
+        Mono<Link> monoLink = linkTo(methodOn(ClientController.class).findById(id)).withRel("client-info").toMono();
 
         return service.findById(id)
                 .map(this::convertToDto)
                 .zipWith(monoLink,EntityModel::of); //(d,link) -> EntityModel.of(d,link)
     }
 
-    private DishDTO convertToDto(Dish model){
-        return modelMapper.map(model, DishDTO.class);
+    private ClientDTO convertToDto(Client model){
+        return modelMapper.map(model, ClientDTO.class);
     }
 
-    private Dish convertToDocument(DishDTO dto){
-        return modelMapper.map(dto, Dish.class);
+    private Client convertToDocument(ClientDTO dto){
+        return modelMapper.map(dto, Client.class);
     }
 
 }
